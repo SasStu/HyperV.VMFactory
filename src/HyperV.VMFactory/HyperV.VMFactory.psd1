@@ -17,8 +17,8 @@
     PrivateData        = @{
         PSData = @{
             Tags         = @('Hyper-V', 'VM', 'VirtualMachine', 'HyperV', 'Provisioning', 'Windows')
-            LicenseUri   = 'https://github.com/yourname/HyperV.VMFactory/blob/main/LICENSE'
-            ProjectUri   = 'https://github.com/yourname/HyperV.VMFactory'
+            LicenseUri   = 'https://github.com/SasStu/HyperV.VMFactory/blob/main/LICENSE'
+            ProjectUri   = 'https://github.com/SasStu/HyperV.VMFactory'
             ReleaseNotes = 'Initial release of HyperV.VMFactory module.'
         }
     }
