@@ -1,0 +1,18 @@
+# Build output
+output/
+
+# IDE
+.vscode/
+.idea/
+
+# PowerShell
+*.psm1.bak
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Test results
+testresults.xml
+coverage.xml

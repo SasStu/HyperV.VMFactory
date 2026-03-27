@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: ['*']
+  pull_request:
+    branches: [main]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  lint:
+    name: PSScriptAnalyzer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
+          $results = Invoke-ScriptAnalyzer -Path ./src -Recurse -Severity Error, Warning
+          $results | Format-Table -AutoSize
+          if ($results) {
+              throw "PSScriptAnalyzer found $($results.Count) issue(s)."
+          }
+
+  test:
+    name: Pester Tests
+    runs-on: windows-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Pester Tests
+        shell: pwsh
+        run: |
+          Install-Module Pester -Force -Scope CurrentUser -MinimumVersion 5.0.0
+          $config = New-PesterConfiguration
+          $config.Run.Path = './tests/Unit'
+          $config.Output.Verbosity = 'Detailed'
+          $config.CodeCoverage.Enabled = $true
+          $config.CodeCoverage.Path = @('./src/HyperV.VMFactory/Public', './src/HyperV.VMFactory/Private')
+          $config.CodeCoverage.OutputFormat = 'JaCoCo'
+          $config.CodeCoverage.OutputPath = './coverage.xml'
+          $config.TestResult.Enabled = $true
+          $config.TestResult.OutputFormat = 'NUnitXml'
+          $config.TestResult.OutputPath = './testresults.xml'
+          Invoke-Pester -Configuration $config
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            ./testresults.xml
+            ./coverage.xml

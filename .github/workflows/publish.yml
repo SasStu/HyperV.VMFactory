@@ -1,0 +1,46 @@
+name: Publish to PSGallery
+
+on:
+  push:
+    tags: ['v*']
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Pester Tests
+        shell: pwsh
+        run: |
+          Install-Module Pester -Force -Scope CurrentUser -MinimumVersion 5.0.0
+          $config = New-PesterConfiguration
+          $config.Run.Path = './tests/Unit'
+          $config.Run.Exit = $true
+          $config.Output.Verbosity = 'Detailed'
+          Invoke-Pester -Configuration $config
+
+  publish:
+    name: Publish Module
+    runs-on: windows-latest
+    needs: test
+    environment: PSGallery
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update module version from tag
+        shell: pwsh
+        run: |
+          $tag = $env:GITHUB_REF_NAME -replace '^v', ''
+          ./build/build.ps1 -Version $tag
+
+      - name: Publish to PSGallery
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
+        run: |
+          ./build/publish.ps1 -ApiKey $env:NUGET_API_KEY
