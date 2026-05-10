@@ -13,6 +13,9 @@ Thumbs.db
 Desktop.ini
 .DS_Store
 
+# Superpowers design docs
+docs/superpowers/
+
 # Test results
 testresults.xml
 coverage.xml
