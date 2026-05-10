@@ -69,6 +69,9 @@ function New-HyperVVM {
     .PARAMETER AutomaticStopAction
         Action when the Hyper-V host shuts down. Defaults to 'ShutDown'.
 
+    .PARAMETER AutomaticCheckpointsEnabled
+        When specified, enables automatic checkpoints. Disabled by default.
+
     .PARAMETER ISOPath
         Path to an ISO file to attach for OS installation.
 
@@ -227,6 +230,10 @@ function New-HyperVVM {
         $AutomaticStopAction = 'ShutDown',
 
         [Parameter(ParameterSetName = 'ByParameter')]
+        [System.Management.Automation.SwitchParameter]
+        $AutomaticCheckpointsEnabled,
+
+        [Parameter(ParameterSetName = 'ByParameter')]
         [System.String]
         $ISOPath,
 
@@ -279,8 +286,9 @@ function New-HyperVVM {
                     OpenConsole           = [bool]$OpenConsole
                     HorizontalResolution  = $HorizontalResolution
                     VerticalResolution    = $VerticalResolution
-                    AutomaticStartAction  = $AutomaticStartAction
-                    AutomaticStopAction   = $AutomaticStopAction
+                    AutomaticStartAction         = $AutomaticStartAction
+                    AutomaticStopAction          = $AutomaticStopAction
+                    AutomaticCheckpointsEnabled  = [bool]$AutomaticCheckpointsEnabled
                     ISOPath               = $ISOPath
                 }
             }
@@ -407,8 +415,9 @@ function New-HyperVVMLocal {
         NestedVirtualization  = $Config.NestedVirtualization
         TPM                   = $Config.TPM
         GuestServices         = $Config.GuestServices
-        AutomaticStartAction  = $Config.AutomaticStartAction
-        AutomaticStopAction   = $Config.AutomaticStopAction
+        AutomaticStartAction        = $Config.AutomaticStartAction
+        AutomaticStopAction         = $Config.AutomaticStopAction
+        AutomaticCheckpointsEnabled = $Config.AutomaticCheckpointsEnabled
     }
     Set-VMConfiguration @configSplat
 
@@ -467,8 +476,9 @@ function Invoke-HyperVVMCreationRemote {
         PowerOnVM             = $Config.PowerOnVM
         HorizontalResolution  = $Config.HorizontalResolution
         VerticalResolution    = $Config.VerticalResolution
-        AutomaticStartAction  = $Config.AutomaticStartAction
-        AutomaticStopAction   = $Config.AutomaticStopAction
+        AutomaticStartAction        = $Config.AutomaticStartAction
+        AutomaticStopAction         = $Config.AutomaticStopAction
+        AutomaticCheckpointsEnabled = $Config.AutomaticCheckpointsEnabled
         ISOPath               = $Config.ISOPath
     }
 
@@ -516,7 +526,7 @@ function Invoke-HyperVVMCreationRemote {
 
         # Configure VM
         Set-VM -VM $vm -ProcessorCount $VMConfig.VMProcessorCount `
-            -AutomaticCheckpointsEnabled:$false `
+            -AutomaticCheckpointsEnabled:$VMConfig.AutomaticCheckpointsEnabled `
             -AutomaticStartAction $VMConfig.AutomaticStartAction `
             -AutomaticStopAction $VMConfig.AutomaticStopAction
 

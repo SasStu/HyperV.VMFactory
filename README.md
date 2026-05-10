@@ -102,6 +102,7 @@ New-HyperVVM -VMName 'TestVM' -Path 'D:\VMs' -VMSwitch 'External' -WhatIf
 | VerticalResolution | Int64 | No | 1080 | Video vertical resolution (even) |
 | AutomaticStartAction | String | No | Nothing | Host start action |
 | AutomaticStopAction | String | No | ShutDown | Host stop action |
+| AutomaticCheckpointsEnabled | Switch | No | Off | Enable automatic checkpoints (disabled by default) |
 | ISOPath | String | No | - | ISO file for boot |
 | ComputerName | String[] | No | - | Remote Hyper-V host(s) |
 | Credential | PSCredential | No | - | Credential for remote access |
