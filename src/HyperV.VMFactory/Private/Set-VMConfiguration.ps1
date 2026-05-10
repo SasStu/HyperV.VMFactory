@@ -5,8 +5,8 @@ function Set-VMConfiguration {
 
     .DESCRIPTION
         Configures processor count, video resolution, integration services, nested
-        virtualization, TPM, guest services, automatic start/stop actions, and disables
-        automatic checkpoints on an existing VM.
+        virtualization, TPM, guest services, automatic start/stop actions, and automatic
+        checkpoint behavior on an existing VM.
     #>
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     [CmdletBinding()]
@@ -47,14 +47,18 @@ function Set-VMConfiguration {
         [Parameter()]
         [ValidateSet('TurnOff', 'Save', 'ShutDown')]
         [System.String]
-        $AutomaticStopAction = 'ShutDown'
+        $AutomaticStopAction = 'ShutDown',
+
+        [Parameter()]
+        [System.Boolean]
+        $AutomaticCheckpointsEnabled = $false
     )
 
     $vmName = $VM.VMName
 
     Write-Verbose "Configuring VM '$vmName': ProcessorCount=$ProcessorCount"
     Set-VM -VMName $vmName -ProcessorCount $ProcessorCount `
-        -AutomaticCheckpointsEnabled:$false `
+        -AutomaticCheckpointsEnabled:$AutomaticCheckpointsEnabled `
         -AutomaticStartAction $AutomaticStartAction `
         -AutomaticStopAction $AutomaticStopAction
 

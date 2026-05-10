@@ -64,6 +64,9 @@ function New-HyperVVMConfiguration {
     .PARAMETER AutomaticStopAction
         Action when the Hyper-V host shuts down. Defaults to 'ShutDown'.
 
+    .PARAMETER AutomaticCheckpointsEnabled
+        When specified, enables automatic checkpoints. Disabled by default.
+
     .PARAMETER ISOPath
         Path to an ISO file to attach as a DVD drive for OS installation.
 
@@ -176,6 +179,10 @@ function New-HyperVVMConfiguration {
         $AutomaticStopAction = 'ShutDown',
 
         [Parameter()]
+        [System.Management.Automation.SwitchParameter]
+        $AutomaticCheckpointsEnabled,
+
+        [Parameter()]
         [System.String]
         $ISOPath
     )
@@ -198,8 +205,9 @@ function New-HyperVVMConfiguration {
         PowerOnVM             = [bool]$PowerOnVM
         HorizontalResolution  = $HorizontalResolution
         VerticalResolution    = $VerticalResolution
-        AutomaticStartAction  = $AutomaticStartAction
-        AutomaticStopAction   = $AutomaticStopAction
+        AutomaticStartAction        = $AutomaticStartAction
+        AutomaticStopAction         = $AutomaticStopAction
+        AutomaticCheckpointsEnabled = [bool]$AutomaticCheckpointsEnabled
         ISOPath               = $ISOPath
     }
 
