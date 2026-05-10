@@ -81,6 +81,41 @@ Describe 'New-HyperVVMConfiguration' {
         }
     }
 
+    Context 'Tag parameters' {
+        It 'Should set Environment when specified' {
+            $config = New-HyperVVMConfiguration -VMName 'TestVM' -Path 'C:\VMs' -VMSwitch 'TestSwitch' `
+                -Environment 'Lab', 'Prod'
+            $config.Environment | Should -Be @('Lab', 'Prod')
+        }
+
+        It 'Should set Service when specified' {
+            $config = New-HyperVVMConfiguration -VMName 'TestVM' -Path 'C:\VMs' -VMSwitch 'TestSwitch' `
+                -Service 'Domain', 'Web'
+            $config.Service | Should -Be @('Domain', 'Web')
+        }
+
+        It 'Should set DependsOn when specified' {
+            $config = New-HyperVVMConfiguration -VMName 'TestVM' -Path 'C:\VMs' -VMSwitch 'TestSwitch' `
+                -DependsOn 'Domain'
+            $config.DependsOn | Should -Be @('Domain')
+        }
+
+        It 'Should default Environment to null when not specified' {
+            $config = New-HyperVVMConfiguration -VMName 'TestVM' -Path 'C:\VMs' -VMSwitch 'TestSwitch'
+            $config.Environment | Should -BeNullOrEmpty
+        }
+
+        It 'Should default Service to null when not specified' {
+            $config = New-HyperVVMConfiguration -VMName 'TestVM' -Path 'C:\VMs' -VMSwitch 'TestSwitch'
+            $config.Service | Should -BeNullOrEmpty
+        }
+
+        It 'Should default DependsOn to null when not specified' {
+            $config = New-HyperVVMConfiguration -VMName 'TestVM' -Path 'C:\VMs' -VMSwitch 'TestSwitch'
+            $config.DependsOn | Should -BeNullOrEmpty
+        }
+    }
+
     Context 'Validation' {
         It 'Should reject odd horizontal resolution' {
             { New-HyperVVMConfiguration -VMName 'TestVM' -Path 'C:\VMs' -VMSwitch 'TestSwitch' `

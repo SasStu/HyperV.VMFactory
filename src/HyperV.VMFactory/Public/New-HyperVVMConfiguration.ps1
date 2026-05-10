@@ -73,6 +73,15 @@ function New-HyperVVMConfiguration {
     .PARAMETER ISOPath
         Path to an ISO file to attach as a DVD drive for OS installation.
 
+    .PARAMETER Environment
+        One or more environment tag values to embed in the VM notes (e.g. 'Lab', 'Prod').
+
+    .PARAMETER Service
+        One or more service tag values to embed in the VM notes (e.g. 'Domain', 'Web').
+
+    .PARAMETER DependsOn
+        One or more service names this VM's service depends on.
+
     .EXAMPLE
         $config = New-HyperVVMConfiguration -VMName 'WebServer01' -Path 'D:\VMs' -VMSwitch 'External'
 
@@ -191,7 +200,19 @@ function New-HyperVVMConfiguration {
 
         [Parameter()]
         [System.String]
-        $ISOPath
+        $ISOPath,
+
+        [Parameter()]
+        [System.String[]]
+        $Environment,
+
+        [Parameter()]
+        [System.String[]]
+        $Service,
+
+        [Parameter()]
+        [System.String[]]
+        $DependsOn
     )
 
     $config = [PSCustomObject]@{
@@ -217,6 +238,9 @@ function New-HyperVVMConfiguration {
         AutomaticStopAction         = $AutomaticStopAction
         AutomaticCheckpointsEnabled = [bool]$AutomaticCheckpointsEnabled
         ISOPath               = $ISOPath
+        Environment           = $Environment
+        Service               = $Service
+        DependsOn             = $DependsOn
     }
 
     Write-Verbose "Created VM configuration for '$VMName'."
