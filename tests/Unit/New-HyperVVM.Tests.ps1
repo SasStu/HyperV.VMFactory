@@ -24,6 +24,7 @@ BeforeAll {
     Mock -ModuleName HyperV.VMFactory Set-VMKeyProtector {}
     Mock -ModuleName HyperV.VMFactory Enable-VMTPM {}
     Mock -ModuleName HyperV.VMFactory Start-VM {}
+    Mock -ModuleName HyperV.VMFactory Start-Process {}
     Mock -ModuleName HyperV.VMFactory Get-VMDvdDrive { $null }
     Mock -ModuleName HyperV.VMFactory Get-VMHardDiskDrive { $null }
     Mock -ModuleName HyperV.VMFactory Invoke-Command {
@@ -146,6 +147,29 @@ Describe 'New-HyperVVM' {
             New-HyperVVM -VMName 'TestVM' -Path 'C:\VMs' -VMSwitch 'TestSwitch' `
                 -PowerOnVM -Confirm:$false
             Should -Invoke -ModuleName HyperV.VMFactory -CommandName Start-VM -Times 1
+        }
+    }
+
+    Context 'Open console' {
+        It 'Should NOT open the console by default' {
+            New-HyperVVM -VMName 'TestVM' -Path 'C:\VMs' -VMSwitch 'TestSwitch' -Confirm:$false
+            Should -Invoke -ModuleName HyperV.VMFactory -CommandName Start-Process -Times 0
+        }
+
+        It 'Should open the console when -OpenConsole is specified' {
+            New-HyperVVM -VMName 'TestVM' -Path 'C:\VMs' -VMSwitch 'TestSwitch' `
+                -OpenConsole -Confirm:$false
+            Should -Invoke -ModuleName HyperV.VMFactory -CommandName Start-Process -Times 1 -ParameterFilter {
+                $FilePath -eq 'vmconnect.exe' -and $ArgumentList -contains 'localhost' -and $ArgumentList -contains 'TestVM'
+            }
+        }
+
+        It 'Should open a console per remote host when -OpenConsole and -ComputerName are specified' {
+            New-HyperVVM -VMName 'RemoteVM' -Path 'D:\VMs' -VMSwitch 'External' `
+                -ComputerName 'Host01', 'Host02' -OpenConsole -Confirm:$false
+            Should -Invoke -ModuleName HyperV.VMFactory -CommandName Start-Process -Times 2 -ParameterFilter {
+                $FilePath -eq 'vmconnect.exe'
+            }
         }
     }
 

@@ -52,6 +52,9 @@ function New-HyperVVMConfiguration {
     .PARAMETER PowerOnVM
         When specified, starts the VM after creation.
 
+    .PARAMETER OpenConsole
+        When specified, opens the VM console (vmconnect.exe) after creation.
+
     .PARAMETER HorizontalResolution
         Horizontal video resolution. Must be an even number. Defaults to 1920.
 
@@ -150,6 +153,10 @@ function New-HyperVVMConfiguration {
         $PowerOnVM,
 
         [Parameter()]
+        [System.Management.Automation.SwitchParameter]
+        $OpenConsole,
+
+        [Parameter()]
         [ValidateScript({
             if ($_ % 2) { throw 'HorizontalResolution must be an even number.' }
             $true
@@ -196,6 +203,7 @@ function New-HyperVVMConfiguration {
         TPM                   = -not $DisableTPM
         GuestServices         = -not $DisableGuestServices
         PowerOnVM             = [bool]$PowerOnVM
+        OpenConsole           = [bool]$OpenConsole
         HorizontalResolution  = $HorizontalResolution
         VerticalResolution    = $VerticalResolution
         AutomaticStartAction  = $AutomaticStartAction

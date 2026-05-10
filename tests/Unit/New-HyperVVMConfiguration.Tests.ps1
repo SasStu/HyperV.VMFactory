@@ -29,6 +29,7 @@ Describe 'New-HyperVVMConfiguration' {
             $config.TPM | Should -Be $true
             $config.GuestServices | Should -Be $true
             $config.PowerOnVM | Should -Be $false
+            $config.OpenConsole | Should -Be $false
             $config.HorizontalResolution | Should -Be 1920
             $config.VerticalResolution | Should -Be 1080
             $config.AutomaticStartAction | Should -Be 'Nothing'
@@ -51,6 +52,12 @@ Describe 'New-HyperVVMConfiguration' {
             $config.AdditionalHDD | Should -Be $true
             $config.PowerOnVM | Should -Be $true
             $config.ISOPath | Should -Be 'C:\ISO\test.iso'
+        }
+
+        It 'Should set OpenConsole to true when -OpenConsole is specified' {
+            $config = New-HyperVVMConfiguration -VMName 'TestVM' -Path 'C:\VMs' -VMSwitch 'TestSwitch' `
+                -OpenConsole
+            $config.OpenConsole | Should -Be $true
         }
     }
 

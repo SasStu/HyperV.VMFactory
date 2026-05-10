@@ -53,6 +53,10 @@ function New-HyperVVM {
     .PARAMETER PowerOnVM
         When specified, starts the VM after creation.
 
+    .PARAMETER OpenConsole
+        When specified, opens the VM console (vmconnect.exe) after creation.
+        For remote VMs (-ComputerName), a console window is opened for each target host.
+
     .PARAMETER HorizontalResolution
         Horizontal video resolution. Must be an even number. Defaults to 1920.
 
@@ -118,6 +122,11 @@ function New-HyperVVM {
             -ISOPath 'C:\ISO\Ubuntu.iso' -VMGeneration 2 -DisableNestedVirtualization -DisableTPM
 
         Creates a VM configured to boot from an ISO with nested virtualization and TPM disabled.
+
+    .EXAMPLE
+        New-HyperVVM -VMName 'DevVM' -Path 'C:\VMs' -VMSwitch 'Default Switch' -PowerOnVM -OpenConsole
+
+        Creates a VM, starts it, and immediately opens the VM console.
 
     .OUTPUTS
         Microsoft.HyperV.PowerShell.VirtualMachine
@@ -186,6 +195,10 @@ function New-HyperVVM {
         [Parameter(ParameterSetName = 'ByParameter')]
         [System.Management.Automation.SwitchParameter]
         $PowerOnVM,
+
+        [Parameter(ParameterSetName = 'ByParameter')]
+        [System.Management.Automation.SwitchParameter]
+        $OpenConsole,
 
         [Parameter(ParameterSetName = 'ByParameter')]
         [ValidateScript({
@@ -263,6 +276,7 @@ function New-HyperVVM {
                     TPM                   = -not $DisableTPM
                     GuestServices         = -not $DisableGuestServices
                     PowerOnVM             = [bool]$PowerOnVM
+                    OpenConsole           = [bool]$OpenConsole
                     HorizontalResolution  = $HorizontalResolution
                     VerticalResolution    = $VerticalResolution
                     AutomaticStartAction  = $AutomaticStartAction
@@ -284,12 +298,23 @@ function New-HyperVVM {
                 $result = Invoke-HyperVVMCreationRemote -Config $config -ComputerName $ComputerName `
                     -Credential $Credential
                 if ($result) { $result }
+                if ($config.OpenConsole) {
+                    foreach ($cn in $ComputerName) {
+                        Write-Verbose "Opening VM console for '$currentVMName' on '$cn'."
+                        Start-Process -FilePath 'vmconnect.exe' -ArgumentList $cn, $currentVMName
+                    }
+                }
                 continue
             }
 
             try {
                 Write-Verbose "Creating VM '$currentVMName'..."
                 $vm = New-HyperVVMLocal -Config $config -CimSession $CimSession
+                if ($config.OpenConsole) {
+                    $consoleHost = if ($CimSession) { $CimSession[0].ComputerName } else { 'localhost' }
+                    Write-Verbose "Opening VM console for '$currentVMName' on '$consoleHost'."
+                    Start-Process -FilePath 'vmconnect.exe' -ArgumentList $consoleHost, $currentVMName
+                }
                 $vm
             } catch {
                 Write-Error "Failed to create VM '$currentVMName': $_"
