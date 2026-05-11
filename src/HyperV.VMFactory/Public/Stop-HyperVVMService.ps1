@@ -54,7 +54,7 @@ function Stop-HyperVVMService {
         }
         if ($PSCmdlet.ShouldProcess($vmObj.Name, 'Stop VM')) {
             try {
-                if ($Force) { Stop-VM -VM $vmObj -Force } else { Stop-VM -VM $vmObj }
+                if ($Force) { Stop-VM -Name $vmObj.Name -Force } else { Stop-VM -Name $vmObj.Name }
                 $result.Success += $vmObj.Name
             } catch {
                 $result.Failed = [PSCustomObject]@{ VMName = $vmObj.Name; Error = $_.ToString() }

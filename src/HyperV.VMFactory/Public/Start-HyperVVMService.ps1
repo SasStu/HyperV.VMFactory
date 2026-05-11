@@ -58,8 +58,8 @@ function Start-HyperVVMService {
         }
         if ($PSCmdlet.ShouldProcess($vmObj.Name, 'Start VM')) {
             try {
-                Start-VM -VM $vmObj
-                if ($WaitForHeartbeat) { Wait-VM -VM $vmObj -For Heartbeat }
+                Start-VM -Name $vmObj.Name
+                if ($WaitForHeartbeat) { Wait-VM -Name $vmObj.Name -For Heartbeat }
                 $result.Success += $vmObj.Name
             } catch {
                 $result.Failed = [PSCustomObject]@{ VMName = $vmObj.Name; Error = $_.ToString() }

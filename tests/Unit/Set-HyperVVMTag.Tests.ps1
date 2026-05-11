@@ -1,6 +1,6 @@
 BeforeAll {
     $modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\src\HyperV.VMFactory\HyperV.VMFactory.psm1'
-    Import-Module $modulePath -Force
+    Import-Module $modulePath
 
     Mock -ModuleName HyperV.VMFactory Assert-HyperVPrerequisite {}
     Mock -ModuleName HyperV.VMFactory Set-VM {}

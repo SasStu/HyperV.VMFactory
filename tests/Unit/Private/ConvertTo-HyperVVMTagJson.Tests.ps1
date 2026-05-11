@@ -1,7 +1,4 @@
-BeforeAll {
-    $modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\..\src\HyperV.VMFactory\HyperV.VMFactory.psm1'
-    Import-Module $modulePath -Force
-}
+using module '..\..\..\src\HyperV.VMFactory\HyperV.VMFactory.psm1'
 
 Describe 'ConvertTo-HyperVVMTagJson' {
     InModuleScope HyperV.VMFactory {

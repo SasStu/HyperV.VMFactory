@@ -1,24 +1,23 @@
-BeforeAll {
-    $modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\src\HyperV.VMFactory\HyperV.VMFactory.psm1'
-    Import-Module $modulePath -Force
-
-    Mock -ModuleName HyperV.VMFactory Assert-HyperVPrerequisite {}
-    Mock -ModuleName HyperV.VMFactory Stop-VM {}
-
-    function script:New-TestTopology {
-        $dhcpVM = [PSCustomObject]@{ Name = 'DHCP01'; State = 'Running' }
-        $dcVM   = [PSCustomObject]@{ Name = 'DC01';   State = 'Running' }
-
-        $dhcpSvc = [HyperVVMService]::new(); $dhcpSvc.Name = 'DHCP';   $dhcpSvc.Environment = 'Lab'; $dhcpSvc.DependsOn = @();       $dhcpSvc.VM = @($dhcpVM)
-        $dcSvc   = [HyperVVMService]::new(); $dcSvc.Name   = 'Domain'; $dcSvc.Environment   = 'Lab'; $dcSvc.DependsOn   = @('DHCP'); $dcSvc.VM   = @($dcVM)
-
-        $env = [HyperVVMEnvironment]::new(); $env.Name = 'Lab'; $env.Service = @($dhcpSvc, $dcSvc); $env.StartOrder = @('DHCP', 'Domain')
-        $topo = [HyperVVMTopology]::new(); $topo.ComputerName = 'localhost'; $topo.Environment = @($env)
-        $topo
-    }
-}
-
 Describe 'Stop-HyperVVMService' {
+    BeforeAll {
+        $modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\src\HyperV.VMFactory\HyperV.VMFactory.psm1'
+        Import-Module $modulePath -Force
+        Mock -ModuleName HyperV.VMFactory Assert-HyperVPrerequisite {}
+        Mock -ModuleName HyperV.VMFactory Stop-VM {}
+
+        function script:New-TestTopology {
+            $dhcpVM = [PSCustomObject]@{ Name = 'DHCP01'; State = 'Running' }
+            $dcVM   = [PSCustomObject]@{ Name = 'DC01';   State = 'Running' }
+
+            $dhcpSvc = [HyperVVMService]::new(); $dhcpSvc.Name = 'DHCP';   $dhcpSvc.Environment = 'Lab'; $dhcpSvc.DependsOn = @();       $dhcpSvc.VM = @($dhcpVM)
+            $dcSvc   = [HyperVVMService]::new(); $dcSvc.Name   = 'Domain'; $dcSvc.Environment   = 'Lab'; $dcSvc.DependsOn   = @('DHCP'); $dcSvc.VM   = @($dcVM)
+
+            $env = [HyperVVMEnvironment]::new(); $env.Name = 'Lab'; $env.Service = @($dhcpSvc, $dcSvc); $env.StartOrder = @('DHCP', 'Domain')
+            $topo = [HyperVVMTopology]::new(); $topo.ComputerName = 'localhost'; $topo.Environment = @($env)
+            $topo
+        }
+    }
+
     Context 'Stopping a service' {
         It 'calls Stop-VM for each running VM' {
             $topo = New-TestTopology
@@ -44,7 +43,7 @@ Describe 'Stop-HyperVVMService' {
         It 'stops Domain before DHCP when stopping DHCP with -Recurse' {
             $topo = New-TestTopology
             $stopOrder = [System.Collections.Generic.List[string]]::new()
-            Mock -ModuleName HyperV.VMFactory Stop-VM { $stopOrder.Add($VM.Name) }
+            Mock -ModuleName HyperV.VMFactory Stop-VM { $stopOrder.Add($Name) }
             Stop-HyperVVMService -ServiceName 'DHCP' -EnvironmentName 'Lab' -Topology $topo -Recurse -Confirm:$false
             $stopOrder.IndexOf('DC01') | Should -BeLessThan $stopOrder.IndexOf('DHCP01')
         }
