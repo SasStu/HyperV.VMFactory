@@ -33,6 +33,10 @@ BeforeAll {
 
     # Mock prerequisite check to always pass in tests
     Mock -ModuleName HyperV.VMFactory Assert-HyperVPrerequisite {}
+    Mock -ModuleName HyperV.VMFactory Set-HyperVVMTag {}
+    Mock -ModuleName HyperV.VMFactory Get-VM {
+        [PSCustomObject]@{ Name = $Name; Notes = '' }
+    }
 }
 
 Describe 'New-HyperVVM' {
@@ -228,6 +232,26 @@ Describe 'New-HyperVVM' {
             New-HyperVVM -VMName 'RemoteVM' -Path 'D:\VMs' -VMSwitch 'External' `
                 -ComputerName 'HyperVHost01' -Confirm:$false
             Should -Invoke -ModuleName HyperV.VMFactory -CommandName Assert-HyperVPrerequisite -Times 0
+        }
+    }
+
+    Context 'Tag parameters on ByParameter set' {
+        It 'calls Set-HyperVVMTag when -Environment is provided' {
+            New-HyperVVM -VMName 'VM01' -Path 'C:\VMs' -VMSwitch 'Test' -Environment 'Lab' -Confirm:$false
+            Should -Invoke -ModuleName HyperV.VMFactory Set-HyperVVMTag -Times 1
+        }
+
+        It 'does not call Set-HyperVVMTag when no tag params provided' {
+            New-HyperVVM -VMName 'VM01' -Path 'C:\VMs' -VMSwitch 'Test' -Confirm:$false
+            Should -Invoke -ModuleName HyperV.VMFactory Set-HyperVVMTag -Times 0
+        }
+    }
+
+    Context 'Tag parameters via Configuration' {
+        It 'calls Set-HyperVVMTag when config has TagEnvironment' {
+            $config = New-HyperVVMConfiguration -VMName 'VM01' -Path 'C:\VMs' -VMSwitch 'Test' -Environment 'Lab'
+            New-HyperVVM -Configuration $config -Confirm:$false
+            Should -Invoke -ModuleName HyperV.VMFactory Set-HyperVVMTag -Times 1
         }
     }
 

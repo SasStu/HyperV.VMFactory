@@ -237,6 +237,18 @@ function New-HyperVVM {
         [System.String]
         $ISOPath,
 
+        [Parameter(ParameterSetName = 'ByParameter')]
+        [System.String[]]
+        $Environment,
+
+        [Parameter(ParameterSetName = 'ByParameter')]
+        [System.String[]]
+        $Service,
+
+        [Parameter(ParameterSetName = 'ByParameter')]
+        [System.String[]]
+        $DependsOn,
+
         [Parameter(ValueFromPipeline, ParameterSetName = 'ByConfiguration')]
         [PSTypeName('HyperV.VMFactory.Configuration')]
         [System.Object[]]
@@ -306,6 +318,12 @@ function New-HyperVVM {
                 $result = Invoke-HyperVVMCreationRemote -Config $config -ComputerName $ComputerName `
                     -Credential $Credential
                 if ($result) { $result }
+                if ($config.Environment -or $config.Service -or $config.DependsOn) {
+                    $tagTarget = Get-VM -Name $config.VMName -ErrorAction SilentlyContinue
+                    if ($tagTarget) {
+                        Set-HyperVVMTag -VM $tagTarget -Environment @($config.Environment) -Service @($config.Service) -DependsOn @($config.DependsOn) -Force -Confirm:$false
+                    }
+                }
                 if ($config.OpenConsole) {
                     foreach ($cn in $ComputerName) {
                         Write-Verbose "Opening VM console for '$currentVMName' on '$cn'."
@@ -322,6 +340,18 @@ function New-HyperVVM {
                     $consoleHost = if ($CimSession) { $CimSession[0].ComputerName } else { 'localhost' }
                     Write-Verbose "Opening VM console for '$currentVMName' on '$consoleHost'."
                     Start-Process -FilePath 'vmconnect.exe' -ArgumentList $consoleHost, $currentVMName
+                }
+                if ($Environment -or $Service -or $DependsOn) {
+                    $tagTarget = Get-VM -Name $currentVMName -ErrorAction SilentlyContinue
+                    if ($tagTarget) {
+                        Set-HyperVVMTag -VM $tagTarget -Environment @($Environment) -Service @($Service) -DependsOn @($DependsOn) -Force -Confirm:$false
+                    }
+                }
+                if ($config.Environment -or $config.Service -or $config.DependsOn) {
+                    $tagTarget = Get-VM -Name $config.VMName -ErrorAction SilentlyContinue
+                    if ($tagTarget) {
+                        Set-HyperVVMTag -VM $tagTarget -Environment @($config.Environment) -Service @($config.Service) -DependsOn @($config.DependsOn) -Force -Confirm:$false
+                    }
                 }
                 $vm
             } catch {
