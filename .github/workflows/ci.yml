@@ -20,7 +20,10 @@ jobs:
         shell: pwsh
         run: |
           Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
-          $results = Invoke-ScriptAnalyzer -Path ./src -Recurse -Severity Error, Warning
+          # TypeNotFound is excluded: PSScriptAnalyzer analyses files in isolation and cannot
+          # resolve cross-file class dependencies (e.g. HyperVVMEnvironment -> HyperVVMService).
+          $results = Invoke-ScriptAnalyzer -Path ./src -Recurse -Severity Error, Warning `
+              -ExcludeRule TypeNotFound
           $results | Format-Table -AutoSize
           if ($results) {
               throw "PSScriptAnalyzer found $($results.Count) issue(s)."
