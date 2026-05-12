@@ -1,6 +1,6 @@
 @{
     RootModule        = 'HyperV.VMFactory.psm1'
-    ModuleVersion     = '2.0.0'
+    ModuleVersion     = '2.1.0'
     GUID              = 'a09f6edf-2c95-458d-8755-1b5d5e85f17b'
     Author            = 'Sascha Stumpler'
     CompanyName       = 'Community'
@@ -17,6 +17,7 @@
         'Stop-HyperVVMService'
         'Start-HyperVVMEnvironment'
         'Stop-HyperVVMEnvironment'
+        'Get-HyperVVMMermaidDiagram'
     )
     CmdletsToExport   = @()
     VariablesToExport  = @()
@@ -26,7 +27,7 @@
             Tags         = @('Hyper-V', 'VM', 'VirtualMachine', 'HyperV', 'Provisioning', 'Windows', 'Lifecycle', 'Tag', 'Service', 'Environment')
             LicenseUri   = 'https://github.com/SasStu/HyperV.VMFactory/blob/main/LICENSE'
             ProjectUri   = 'https://github.com/SasStu/HyperV.VMFactory'
-            ReleaseNotes = 'v2.0.0: Added VM tagging and dependency-ordered lifecycle management (Start/Stop-HyperVVMService, Start/Stop-HyperVVMEnvironment, Get/Set-HyperVVMTag, Get-HyperVVMTopology).'
+            ReleaseNotes = 'v2.1.0: Added Get-HyperVVMMermaidDiagram for Mermaid topology diagrams.'
         }
     }
 }
