@@ -30,6 +30,7 @@ function Stop-HyperVVMEnvironment {
     [array]::Reverse($reverseOrder)
 
     foreach ($svcName in $reverseOrder) {
+        if (-not $PSCmdlet.ShouldProcess("$EnvironmentName/$svcName", 'Stop service')) { continue }
         $svcResult = Stop-HyperVVMService -ServiceName $svcName -EnvironmentName $EnvironmentName `
             -Topology $Topology -Force:$Force
         $overall.Success += $svcResult.Success

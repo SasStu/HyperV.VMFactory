@@ -5,6 +5,7 @@ function Update-HyperVVMTag {
     .DESCRIPTION
         Reads <Env>, <Service>, and <DependsOn> XML tags from a VM's Notes field and rewrites
         them as a #HVTag:{JSON} line understood by Get-HyperVVMTag and Set-HyperVVMTag.
+
         VMs that already carry a new-format tag are skipped unless -Force is specified.
     .EXAMPLE
         Get-VM | Update-HyperVVMTag -WhatIf
@@ -43,7 +44,7 @@ function Update-HyperVVMTag {
         foreach ($vmObj in $VM) {
             $legacyTag = ConvertFrom-LegacyHVTag -Notes $vmObj.Notes
             if (-not $legacyTag) {
-                Write-Verbose "VM '$($vmObj.Name)' has no legacy PSHVTag — skipping."
+                Write-Verbose "VM '$($vmObj.Name)' has no legacy PSHVTag - skipping."
                 continue
             }
             $existingTag = ConvertFrom-HyperVVMTag -Notes $vmObj.Notes

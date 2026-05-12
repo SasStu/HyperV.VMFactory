@@ -26,6 +26,7 @@ function Start-HyperVVMEnvironment {
     $overall = [PSCustomObject]@{ Success = @(); Failed = $null }
 
     foreach ($svcName in $env.StartOrder) {
+        if (-not $PSCmdlet.ShouldProcess("$EnvironmentName/$svcName", 'Start service')) { continue }
         $svcResult = Start-HyperVVMService -ServiceName $svcName -EnvironmentName $EnvironmentName `
             -Topology $Topology -WaitForHeartbeat:$WaitForHeartbeat
         $overall.Success += $svcResult.Success

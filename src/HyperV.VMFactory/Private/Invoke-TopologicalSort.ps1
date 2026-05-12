@@ -6,17 +6,17 @@ function Invoke-TopologicalSort {
         [hashtable] $EdgeList
     )
 
-    $allNodes = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $nodeSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
     foreach ($node in $EdgeList.Keys) {
-        [void]$allNodes.Add($node)
+        [void]$nodeSet.Add($node)
         foreach ($dep in $EdgeList[$node]) {
-            if (-not [string]::IsNullOrEmpty($dep)) { [void]$allNodes.Add($dep) }
+            if (-not [string]::IsNullOrEmpty($dep)) { [void]$nodeSet.Add($dep) }
         }
     }
 
     $dependents = @{}
     $inDegree   = @{}
-    foreach ($node in $allNodes) {
+    foreach ($node in $nodeSet) {
         $dependents[$node] = [System.Collections.Generic.List[string]]::new()
         $inDegree[$node]   = 0
     }
@@ -31,7 +31,7 @@ function Invoke-TopologicalSort {
     }
 
     $queue = [System.Collections.Generic.Queue[string]]::new()
-    foreach ($node in $allNodes) {
+    foreach ($node in $nodeSet) {
         if ($inDegree[$node] -eq 0) { $queue.Enqueue($node) }
     }
 
@@ -45,8 +45,8 @@ function Invoke-TopologicalSort {
         }
     }
 
-    if ($sorted.Count -ne $allNodes.Count) {
-        $remaining = $allNodes | Where-Object { $sorted -notcontains $_ }
+    if ($sorted.Count -ne $nodeSet.Count) {
+        $remaining = $nodeSet | Where-Object { $sorted -notcontains $_ }
         throw "Dependency cycle detected involving: $($remaining -join ', ')"
     }
 
