@@ -16,6 +16,9 @@ Desktop.ini
 # Claude/Superpowers docs
 docs/
 
+# Claude Code local settings
+.claude/settings.local.json
+
 # Test results
 testresults.xml
 coverage.xml
