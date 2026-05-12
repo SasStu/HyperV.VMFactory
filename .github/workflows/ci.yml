@@ -20,10 +20,11 @@ jobs:
         shell: pwsh
         run: |
           Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
-          # TypeNotFound is excluded: PSScriptAnalyzer analyses files in isolation and cannot
-          # resolve cross-file class dependencies (e.g. HyperVVMEnvironment -> HyperVVMService).
-          $results = Invoke-ScriptAnalyzer -Path ./src -Recurse -Severity Error, Warning `
-              -ExcludeRule TypeNotFound
+          # TypeNotFound is filtered out: it is a parse-error category, not a named rule, so
+          # -ExcludeRule does not suppress it. These are false positives caused by PSScriptAnalyzer
+          # analysing files in isolation and being unable to resolve cross-file class dependencies.
+          $results = Invoke-ScriptAnalyzer -Path ./src -Recurse -Severity Error, Warning |
+              Where-Object RuleName -ne 'TypeNotFound'
           $results | Format-Table -AutoSize
           if ($results) {
               throw "PSScriptAnalyzer found $($results.Count) issue(s)."
