@@ -44,9 +44,9 @@ function Set-HyperVVMTag {
                 continue
             }
             $tag             = [HyperVVMTag]::new()
-            $tag.Environment = @($Environment)
-            $tag.Service     = @($Service)
-            $tag.DependsOn   = @($DependsOn)
+            $tag.Environment   = @($Environment | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+            $tag.Service       = @($Service     | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+            $tag.DependsOn = @($DependsOn | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
             $newNotes = ConvertTo-HyperVVMTagJson -Tag $tag -ExistingNotes $vmObj.Notes
             if ($PSCmdlet.ShouldProcess($vmObj.Name, 'Set VM tag')) {
                 Set-VM -Name $vmObj.Name -ComputerName $ComputerName -Notes $newNotes

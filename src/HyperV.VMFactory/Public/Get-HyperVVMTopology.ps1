@@ -10,6 +10,10 @@ function Get-HyperVVMTopology {
 
     $taggedVMs = Get-VM -ComputerName $ComputerName | ForEach-Object {
         $tag = ConvertFrom-HyperVVMTag -Notes $_.Notes
+        if (-not $tag) {
+            $tag = ConvertFrom-LegacyHVTag -Notes $_.Notes
+            if ($tag) { Write-Warning "VM '$($_.Name)' has legacy PSHVTag format. Run Update-HyperVVMTag to migrate." }
+        }
         if ($tag) { [PSCustomObject]@{ VM = $_; Tag = $tag } }
     }
 
@@ -28,7 +32,7 @@ function Get-HyperVVMTopology {
 
         $services = foreach ($svcName in $serviceNames) {
             $svcEntries = $envVMs | Where-Object { $_.Tag.Service -contains $svcName }
-            $dependsOn  = $svcEntries |
+            $dependsOn = $svcEntries |
                 ForEach-Object { $_.Tag.DependsOn } |
                 Where-Object { $_ } |
                 Select-Object -Unique

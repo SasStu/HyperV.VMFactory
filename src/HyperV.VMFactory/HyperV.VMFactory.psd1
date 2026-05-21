@@ -18,6 +18,7 @@
         'Start-HyperVVMEnvironment'
         'Stop-HyperVVMEnvironment'
         'Get-HyperVVMMermaidDiagram'
+        'Update-HyperVVMTag'
     )
     CmdletsToExport   = @()
     VariablesToExport  = @()

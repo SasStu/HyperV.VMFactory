@@ -19,30 +19,46 @@ function Start-HyperVVMService {
         [switch] $Recurse,
 
         [Parameter()]
-        [switch] $WaitForHeartbeat
+        [bool] $WaitForVM = $true,
+
+        [Parameter()]
+        [ValidateSet('IPAddress', 'Heartbeat')]
+        [string] $VMWaitFor = 'IPAddress',
+
+        [Parameter()]
+        [int] $WaitTimeoutSeconds = 120
     )
 
     if ($PSCmdlet.ParameterSetName -eq 'ByComputerName') {
         $Topology = Get-HyperVVMTopology -ComputerName $ComputerName
     }
+    $effectiveComputerName = $Topology.ComputerName
 
     $result = [PSCustomObject]@{ Success = @(); Failed = $null }
 
-    $env = $Topology.Environment | Where-Object Name -eq $EnvironmentName
-    if (-not $env) { throw "Environment '$EnvironmentName' not found in topology." }
+    $vmEnv = $Topology.Environment | Where-Object Name -eq $EnvironmentName
+    if (-not $vmEnv) { throw "Environment '$EnvironmentName' not found in topology." }
 
-    $service = $env.Service | Where-Object Name -eq $ServiceName
+    $service = $vmEnv.Service | Where-Object Name -eq $ServiceName
     if (-not $service) { throw "Service '$ServiceName' not found in environment '$EnvironmentName'." }
 
     if ($Recurse) {
         foreach ($dep in $service.DependsOn) {
-            $depSvc = $env.Service | Where-Object Name -eq $dep
+            $depSvc = $vmEnv.Service | Where-Object Name -eq $dep
             if (-not $depSvc) {
-                Write-Verbose "Dependency '$dep' not found in topology, skipping."
+                Write-Warning "Service '$ServiceName' has dependency '$dep' which was not found in environment '$EnvironmentName'. Ensure the VM is tagged correctly or run Update-HyperVVMTag."
                 continue
             }
-            $depResult = Start-HyperVVMService -ServiceName $dep -EnvironmentName $EnvironmentName `
-                -Topology $Topology -Recurse -WaitForHeartbeat:$WaitForHeartbeat
+            $depParams = @{
+                ServiceName        = $dep
+                EnvironmentName    = $EnvironmentName
+                Topology           = $Topology
+                Recurse            = $true
+                WaitForVM          = $WaitForVM
+                VMWaitFor          = $VMWaitFor
+                WaitTimeoutSeconds = $WaitTimeoutSeconds
+            }
+            $depResult = Start-HyperVVMService @depParams
             $result.Success += $depResult.Success
             if ($depResult.Failed) {
                 $result.Failed = $depResult.Failed
@@ -58,8 +74,10 @@ function Start-HyperVVMService {
         }
         if ($PSCmdlet.ShouldProcess($vmObj.Name, 'Start VM')) {
             try {
-                Start-VM -Name $vmObj.Name
-                if ($WaitForHeartbeat) { Wait-VM -Name $vmObj.Name -For Heartbeat }
+                Start-VM -Name $vmObj.Name -ComputerName $effectiveComputerName
+                if ($WaitForVM) {
+                    Wait-VM -Name $vmObj.Name -ComputerName $effectiveComputerName -For $VMWaitFor -Timeout $WaitTimeoutSeconds
+                }
                 $result.Success += $vmObj.Name
             } catch {
                 $result.Failed = [PSCustomObject]@{ VMName = $vmObj.Name; Error = $_.ToString() }

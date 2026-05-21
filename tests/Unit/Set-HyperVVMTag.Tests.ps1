@@ -17,6 +17,13 @@ Describe 'Set-HyperVVMTag' {
                 $Notes -match '#HVTag:'
             }
         }
+
+        It 'splits a comma-separated Environment string into separate values' {
+            Set-HyperVVMTag -VMName 'VM01' -Environment 'PI-LAB,PI-QAL,AUP-LAB' -Service 'Gateway' -Confirm:$false
+            Should -Invoke -ModuleName HyperV.VMFactory Set-VM -Times 1 -ParameterFilter {
+                $Notes -match '"PI-LAB"' -and $Notes -match '"PI-QAL"' -and $Notes -match '"AUP-LAB"'
+            }
+        }
     }
 
     Context 'Existing tag without -Force' {

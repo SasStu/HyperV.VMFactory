@@ -238,9 +238,9 @@ function New-HyperVVMConfiguration {
         AutomaticStopAction         = $AutomaticStopAction
         AutomaticCheckpointsEnabled = [bool]$AutomaticCheckpointsEnabled
         ISOPath               = $ISOPath
-        Environment           = $Environment
-        Service               = $Service
-        DependsOn             = $DependsOn
+        Environment = $Environment
+        Service     = $Service
+        DependsOn   = $DependsOn
     }
 
     Write-Verbose "Created VM configuration for '$VMName'."

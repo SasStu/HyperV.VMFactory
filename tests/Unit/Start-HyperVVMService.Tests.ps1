@@ -26,6 +26,28 @@ Describe 'Start-HyperVVMService' {
             Should -Invoke -ModuleName HyperV.VMFactory Start-VM -Times 1
         }
 
+        It 'waits for IPAddress by default' {
+            $topo = New-TestTopology
+            Start-HyperVVMService -ServiceName 'DHCP' -EnvironmentName 'Lab' -Topology $topo -Confirm:$false
+            Should -Invoke -ModuleName HyperV.VMFactory Wait-VM -Times 1 -ParameterFilter {
+                $For -eq 'IPAddress'
+            }
+        }
+
+        It 'waits for Heartbeat when VMWaitFor is Heartbeat' {
+            $topo = New-TestTopology
+            Start-HyperVVMService -ServiceName 'DHCP' -EnvironmentName 'Lab' -Topology $topo -VMWaitFor Heartbeat -Confirm:$false
+            Should -Invoke -ModuleName HyperV.VMFactory Wait-VM -Times 1 -ParameterFilter {
+                $For -eq 'Heartbeat'
+            }
+        }
+
+        It 'skips Wait-VM when WaitForVM is false' {
+            $topo = New-TestTopology
+            Start-HyperVVMService -ServiceName 'DHCP' -EnvironmentName 'Lab' -Topology $topo -WaitForVM:$false -Confirm:$false
+            Should -Invoke -ModuleName HyperV.VMFactory Wait-VM -Times 0
+        }
+
         It 'returns Success containing the started VM name' {
             $topo = New-TestTopology
             $result = Start-HyperVVMService -ServiceName 'DHCP' -EnvironmentName 'Lab' -Topology $topo -Confirm:$false

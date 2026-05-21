@@ -33,5 +33,18 @@ Describe 'ConvertFrom-HyperVVMTag' {
             $result = ConvertFrom-HyperVVMTag -Notes $notes
             $result.Environment | Should -Be @('Prod')
         }
+
+        It 'splits comma-separated values stored as a single array element' {
+            $notes = '#HVTag:{"Environment":["PI-LAB,PI-QAL,AUP-LAB"],"Service":["Gateway"],"DependsOn":[]}'
+            $result = ConvertFrom-HyperVVMTag -Notes $notes
+            $result.Environment | Should -Be @('PI-LAB', 'PI-QAL', 'AUP-LAB')
+            $result.Service     | Should -Be @('Gateway')
+        }
+
+        It 'trims whitespace from comma-separated values' {
+            $notes = '#HVTag:{"Environment":["PI-LAB, PI-QAL , AUP-LAB"],"Service":["Gateway"],"DependsOn":[]}'
+            $result = ConvertFrom-HyperVVMTag -Notes $notes
+            $result.Environment | Should -Be @('PI-LAB', 'PI-QAL', 'AUP-LAB')
+        }
     }
 }
