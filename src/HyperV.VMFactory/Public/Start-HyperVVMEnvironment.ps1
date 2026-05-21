@@ -13,7 +13,14 @@ function Start-HyperVVMEnvironment {
         [string] $ComputerName = 'localhost',
 
         [Parameter()]
-        [switch] $WaitForHeartbeat
+        [bool] $WaitForVM = $true,
+
+        [Parameter()]
+        [ValidateSet('IPAddress', 'Heartbeat')]
+        [string] $VMWaitFor = 'IPAddress',
+
+        [Parameter()]
+        [int] $WaitTimeoutSeconds = 120
     )
 
     if ($PSCmdlet.ParameterSetName -eq 'ByComputerName') {
@@ -28,7 +35,7 @@ function Start-HyperVVMEnvironment {
     foreach ($svcName in $env.StartOrder) {
         if (-not $PSCmdlet.ShouldProcess("$EnvironmentName/$svcName", 'Start service')) { continue }
         $svcResult = Start-HyperVVMService -ServiceName $svcName -EnvironmentName $EnvironmentName `
-            -Topology $Topology -WaitForHeartbeat:$WaitForHeartbeat
+            -Topology $Topology -WaitForVM $WaitForVM -VMWaitFor $VMWaitFor -WaitTimeoutSeconds $WaitTimeoutSeconds
         $overall.Success += $svcResult.Success
         if ($svcResult.Failed) {
             $overall.Failed = $svcResult.Failed

@@ -4,6 +4,7 @@ Describe 'Stop-HyperVVMEnvironment' {
         Import-Module $modulePath -Force
         Mock -ModuleName HyperV.VMFactory Assert-HyperVPrerequisite {}
         Mock -ModuleName HyperV.VMFactory Stop-VM {}
+        Mock -ModuleName HyperV.VMFactory Wait-HyperVVMOff {}
 
         function script:New-TestTopology {
             $dhcpVM = [PSCustomObject]@{ Name = 'DHCP01'; State = 'Running' }
