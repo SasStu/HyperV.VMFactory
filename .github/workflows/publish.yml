@@ -38,6 +38,14 @@ jobs:
           $tag = $env:GITHUB_REF_NAME -replace '^v', ''
           ./build/build.ps1 -Version $tag
 
+      - name: Register PSGallery
+        shell: pwsh
+        run: |
+          if (-not (Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue)) {
+            Register-PSRepository -Default
+          }
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+
       - name: Publish to PSGallery
         shell: pwsh
         env:
