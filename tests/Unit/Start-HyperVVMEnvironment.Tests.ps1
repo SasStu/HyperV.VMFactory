@@ -5,6 +5,7 @@ Describe 'Start-HyperVVMEnvironment' {
         Mock -ModuleName HyperV.VMFactory Assert-HyperVPrerequisite {}
         Mock -ModuleName HyperV.VMFactory Start-VM {}
         Mock -ModuleName HyperV.VMFactory Wait-VM {}
+        Mock -ModuleName HyperV.VMFactory Invoke-VMConsole {}
 
         function script:New-TestTopology {
             $dhcpVM = [PSCustomObject]@{ Name = 'DHCP01'; State = 'Off' }
@@ -36,6 +37,18 @@ Describe 'Start-HyperVVMEnvironment' {
         Mock -ModuleName HyperV.VMFactory Start-VM { throw 'Could not start' }
         $result = Start-HyperVVMEnvironment -EnvironmentName 'Lab' -Topology $topo -Confirm:$false
         $result.Failed | Should -Not -BeNullOrEmpty
+    }
+
+    It 'opens console for all service VMs when OpenConsole is set' {
+        $topo = New-TestTopology
+        Start-HyperVVMEnvironment -EnvironmentName 'Lab' -Topology $topo -OpenConsole -Confirm:$false
+        Should -Invoke -ModuleName HyperV.VMFactory Invoke-VMConsole -Times 2
+    }
+
+    It 'does not open console when OpenConsole is not set' {
+        $topo = New-TestTopology
+        Start-HyperVVMEnvironment -EnvironmentName 'Lab' -Topology $topo -Confirm:$false
+        Should -Invoke -ModuleName HyperV.VMFactory Invoke-VMConsole -Times 0
     }
 
     It 'throws when environment not found' {

@@ -1,6 +1,6 @@
 @{
     RootModule        = 'HyperV.VMFactory.psm1'
-    ModuleVersion     = '2.1.0'
+    ModuleVersion     = '2.2.0'
     GUID              = 'a09f6edf-2c95-458d-8755-1b5d5e85f17b'
     Author            = 'Sascha Stumpler'
     CompanyName       = 'Community'

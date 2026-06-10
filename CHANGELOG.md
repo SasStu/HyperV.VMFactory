@@ -7,9 +7,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-06-05
+
 ### Added
 
-- `-AutomaticCheckpointsEnabled` switch parameter on `New-HyperVVM` and `New-HyperVVMConfiguration` - enables automatic checkpoints when specified, disabled by default
+- `-OpenConsole` switch on `Start-HyperVVMService` and
+  `Start-HyperVVMEnvironment` - opens a VMConnect window for each VM after it
+  starts
+- `-OpenConsoleScope` parameter on `Start-HyperVVMService` and
+  `Start-HyperVVMEnvironment` (`TargetOnly` | `AllStarted`, default
+  `TargetOnly`) - controls whether consoles are opened for the target service's
+  VMs only or for every VM started including recursed dependencies
+
+## [2.1.0] - 2026-05-12
+
+### Added
+
+- `Get-HyperVVMMermaidDiagram` — renders an environment's dependency topology as
+  a Mermaid flowchart string, suitable for embedding in Markdown or piping to a
+  renderer
+- `Update-HyperVVMTag` — migrates VMs tagged with the legacy `PSHVTag` format to
+  the current `HVTag` JSON format
+- `ConvertFrom-LegacyHVTag` (private) — reads the older `PSHVTag` Notes format
+  and issues a deprecation warning; called automatically by `Get-HyperVVMTag`
+  when a legacy tag is detected
+
+## [2.0.0] - 2026-05-10
+
+### Added
+
+- Tag-based lifecycle management via the VM `Notes` field
+  - `HyperVVMTag`, `HyperVVMService`, `HyperVVMEnvironment`, `HyperVVMTopology`
+    classes, registered as PowerShell type accelerators
+  - `Set-HyperVVMTag` — tag a VM with `Environment`, `Service`, and `DependsOn`
+    values
+  - `Get-HyperVVMTag` — retrieve parsed tag data from a VM's Notes field
+  - `Get-HyperVVMTopology` — build a full topology from all tagged VMs,
+    including dependency-ordered `StartOrder` per environment
+  - `Start-HyperVVMService` — start all VMs in a service; supports
+    `-Recurse` (start dependencies first), `-WaitForVM`, `-VMWaitFor`
+    (`IPAddress` | `Heartbeat`), and `-WaitTimeoutSeconds`
+  - `Stop-HyperVVMService` — stop all VMs in a service with optional `-Recurse`
+  - `Start-HyperVVMEnvironment` — start all services in an environment in
+    topological dependency order
+  - `Stop-HyperVVMEnvironment` — stop all services in an environment in reverse
+    dependency order
+- `-Environment`, `-Service`, `-DependsOn` parameters on `New-HyperVVM` and
+  `New-HyperVVMConfiguration` — tag a VM at creation time
+- `-AutomaticCheckpointsEnabled` switch on `New-HyperVVM` and
+  `New-HyperVVMConfiguration` — enables automatic checkpoints when specified,
+  disabled by default
 
 ## [1.0.0] - 2026-03-26
 

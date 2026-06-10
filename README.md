@@ -103,6 +103,9 @@ New-HyperVVM -VMName 'TestVM' -Path 'D:\VMs' -VMSwitch 'External' -WhatIf
 | AutomaticStartAction | String | No | Nothing | Host start action |
 | AutomaticStopAction | String | No | ShutDown | Host stop action |
 | AutomaticCheckpointsEnabled | Switch | No | Off | Enable automatic checkpoints (disabled by default) |
+| Environment | String[] | No | - | Tag the VM with one or more environment names |
+| Service | String[] | No | - | Tag the VM with one or more service names |
+| DependsOn | String[] | No | - | Tag the VM's service dependencies (other service names) |
 | ISOPath | String | No | - | ISO file for boot |
 | ComputerName | String[] | No | - | Remote Hyper-V host(s) |
 | Credential | PSCredential | No | - | Credential for remote access |
@@ -112,6 +115,106 @@ New-HyperVVM -VMName 'TestVM' -Path 'D:\VMs' -VMSwitch 'External' -WhatIf
 ### New-HyperVVMConfiguration
 
 Accepts the same VM parameters as `New-HyperVVM` (excluding remote and pipeline parameters) and returns a typed configuration object for use with pipeline-based bulk creation.
+
+## Tag-based lifecycle management
+
+VMs are grouped into services and environments via tags stored in the VM `Notes` field. Once tagged, services can be started and stopped in dependency order.
+
+### Tag a VM
+
+```powershell
+Set-HyperVVMTag -VMName 'DC01' -Environment 'Lab' -Service 'Domain' -DependsOn 'DHCP'
+Set-HyperVVMTag -VMName 'DHCP01' -Environment 'Lab' -Service 'DHCP'
+```
+
+### Inspect the topology
+
+```powershell
+$topo = Get-HyperVVMTopology
+```
+
+### Start a single service (and wait for it)
+
+```powershell
+Start-HyperVVMService -ServiceName 'Domain' -EnvironmentName 'Lab' -Topology $topo
+```
+
+### Start a service and automatically start its dependencies first
+
+```powershell
+Start-HyperVVMService -ServiceName 'Domain' -EnvironmentName 'Lab' -Topology $topo -Recurse
+```
+
+### Start a service and open a VM console window
+
+```powershell
+# Open console for the target service's VMs only (default when -OpenConsole is used with -Recurse)
+Start-HyperVVMService -ServiceName 'Domain' -EnvironmentName 'Lab' -Topology $topo -Recurse -OpenConsole
+
+# Open console for every VM started, including recursed dependencies
+Start-HyperVVMService -ServiceName 'Domain' -EnvironmentName 'Lab' -Topology $topo -Recurse -OpenConsole -OpenConsoleScope AllStarted
+
+# Open console without recursing dependencies
+Start-HyperVVMService -ServiceName 'DHCP' -EnvironmentName 'Lab' -Topology $topo -OpenConsole
+```
+
+### Start all services in an environment in dependency order
+
+```powershell
+Start-HyperVVMEnvironment -EnvironmentName 'Lab' -Topology $topo
+
+# Open a console for every VM as it starts
+Start-HyperVVMEnvironment -EnvironmentName 'Lab' -Topology $topo -OpenConsole
+```
+
+### Stop a service or environment
+
+```powershell
+Stop-HyperVVMService -ServiceName 'Domain' -EnvironmentName 'Lab' -Topology $topo
+Stop-HyperVVMEnvironment -EnvironmentName 'Lab' -Topology $topo
+```
+
+### Visualize the topology as a Mermaid diagram
+
+```powershell
+# All environments
+Get-HyperVVMTopology | Get-HyperVVMMermaidDiagram
+
+# One environment
+Get-HyperVVMTopology | Get-HyperVVMMermaidDiagram -Environment 'Lab'
+```
+
+## Lifecycle function parameters
+
+### Start-HyperVVMService
+
+| Parameter | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| ServiceName | String | Yes | - | Name of the service to start |
+| EnvironmentName | String | Yes | - | Environment the service belongs to |
+| Topology | HyperVVMTopology | Yes* | - | Topology object from `Get-HyperVVMTopology` |
+| ComputerName | String | No | localhost | Hyper-V host (resolves topology automatically) |
+| Recurse | Switch | No | Off | Start dependency services first |
+| WaitForVM | Bool | No | `$true` | Wait for each VM after starting |
+| VMWaitFor | String | No | IPAddress | Wait condition: `IPAddress` or `Heartbeat` |
+| WaitTimeoutSeconds | Int | No | 120 | Timeout in seconds for `WaitForVM` |
+| OpenConsole | Switch | No | Off | Open a VMConnect window for each started VM |
+| OpenConsoleScope | String | No | TargetOnly | `TargetOnly` — console for the target service only; `AllStarted` — console for every VM started including recursed dependencies |
+
+\* `Topology` is mandatory in the `ByTopology` parameter set; `ComputerName` is used in `ByComputerName`.
+
+### Start-HyperVVMEnvironment
+
+| Parameter | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| EnvironmentName | String | Yes | - | Name of the environment to start |
+| Topology | HyperVVMTopology | Yes* | - | Topology object from `Get-HyperVVMTopology` |
+| ComputerName | String | No | localhost | Hyper-V host (resolves topology automatically) |
+| WaitForVM | Bool | No | `$true` | Wait for each VM after starting |
+| VMWaitFor | String | No | IPAddress | Wait condition: `IPAddress` or `Heartbeat` |
+| WaitTimeoutSeconds | Int | No | 120 | Timeout in seconds for `WaitForVM` |
+| OpenConsole | Switch | No | Off | Open a VMConnect window for each started VM |
+| OpenConsoleScope | String | No | TargetOnly | `TargetOnly` or `AllStarted` — same as `Start-HyperVVMService` |
 
 ## CI/CD
 

@@ -26,7 +26,14 @@ function Start-HyperVVMService {
         [string] $VMWaitFor = 'IPAddress',
 
         [Parameter()]
-        [int] $WaitTimeoutSeconds = 120
+        [int] $WaitTimeoutSeconds = 120,
+
+        [Parameter()]
+        [switch] $OpenConsole,
+
+        [Parameter()]
+        [ValidateSet('TargetOnly', 'AllStarted')]
+        [string] $OpenConsoleScope = 'TargetOnly'
     )
 
     if ($PSCmdlet.ParameterSetName -eq 'ByComputerName') {
@@ -57,6 +64,8 @@ function Start-HyperVVMService {
                 WaitForVM          = $WaitForVM
                 VMWaitFor          = $VMWaitFor
                 WaitTimeoutSeconds = $WaitTimeoutSeconds
+                OpenConsole        = ($OpenConsole -and $OpenConsoleScope -eq 'AllStarted')
+                OpenConsoleScope   = $OpenConsoleScope
             }
             $depResult = Start-HyperVVMService @depParams
             $result.Success += $depResult.Success
@@ -83,6 +92,12 @@ function Start-HyperVVMService {
                 $result.Failed = [PSCustomObject]@{ VMName = $vmObj.Name; Error = $_.ToString() }
                 return $result
             }
+        }
+    }
+
+    if ($OpenConsole) {
+        foreach ($vmObj in $service.VM) {
+            Invoke-VMConsole -ComputerName $effectiveComputerName -VMName $vmObj.Name
         }
     }
 
